@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import pygame
+import time
 from multiprocessing import Process
 
 
@@ -26,26 +27,37 @@ class TankGame:
         playerProcesses = []
         for player in self.players:
             print "adding player process"
-            playerProcesses.append(Process(target=player.play))
+            playerProcesses.append(player)
 
-        for process in playerProcesses:
-            if process.is_alive() is not True:
-                print "pid: ", process.is_alive
-                process.start()
-                print "pid: ", process.pid, " has started"
+        # for process in playerProcesses:
+        #     if process.is_alive() is not True:
+        #         print "pid: ", process.is_alive
+        #         process.start()
+        #         print "pid: ", process.pid, " has started"
 
         while self.running:
+            timeout = 1
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
 
             self.screen.fill(self.WHITE)
-            for process in playerProcesses:
-                process.join(.01)
-                print "pid: ", process.pid, " is running"
+            print "processing..."
+            for player in self.players:
+                print "Player ", player.name, " is active"
+                player .start()
+                print player.active
+                start = time.time()
+
+                while time.time() - start <= timeout:
+                    #print "sleeping"
+                    time.sleep(.5)
+                print "Player", player.name, " is inactive"
+                #player.toggle(False)
+                player.terminate()
             # player1.tank.render(screen)
-            print "player1 tank: ", self.players[0].tank.yPosition
-            print "player1 tank: ", self.players[1].tank.yPosition
+                print player.name, " tank: ", player.tank.yPosition
+            #print "player1 tank: ", self.players[1].tank.yPosition
 
             self.enforce_rules()
             print "draw_updates"
@@ -72,5 +84,5 @@ class TankGame:
                 player.tank.xPosition = self.size[0]
             if player.tank.yPosition < 0:
                 player.tank.yPosition = 0
-            if player.tank.yPosition > self.size[1]:
-                player.tank.yPosition = self.size[1]
+            if player.tank.yPosition > self.size[1]-80:
+                player.tank.yPosition = self.size[1]-80
