@@ -1,6 +1,6 @@
 from Tank import Tank
 import time
-from multiprocessing import Process
+from multiprocessing import Process, Pipe
 
 
 class Player(Process):
@@ -14,24 +14,61 @@ class Player(Process):
     ):
         super(Player, self).__init__()
         self.name = name
-        self.active = False
+        self.active = True
+        self.player_pipe, self.tank_pipe = Pipe()
+        self.game_pipe = None
         self.tank = Tank(
             startX,
             startY,
             chassisTheta,
-            turretTheta
+            turretTheta,
+            self.tank_pipe
         )
 
-    def toggle(self, active):
-        self.activate = active
-
     def run(self):
-        while True:
-            print self.name, " active? ", self.active
-            if self.active:
-                print self.name, " moving ", self.tank.xPosition, ", ", self.tank.yPosition
-                self.tank.move_down()
-                #print self.name, " now at ", self.tank.xPosition, ", ", self.tank.yPosition
-            else:
-                #print self.name, " is sleeping"
-                time.sleep(.1)
+        while self.active:
+            print self.name, " is moving down..."
+            self.getGameUpdates()
+            self.moveDown()
+            time.sleep(1)
+            self.sendUpdates()
+            #print self.name, " now at ", self.tank.xPosition, ", ", self.tank.yPosition
+
+    def set_pipe(self, pipe):
+        self.game_pipe = pipe
+
+    def getGameUpdates(self):
+        action = self.game_pipe.recv()
+        self.tank.xPosition = action["tankProps"]["xPosition"]
+        self.tank.yPosition = action["tankProps"]["yPosition"]
+        self.tank.chassisTheta = action["tankProps"]["chassisTheta"]
+        self.tank.turretTheta = action["tankProps"]["turretTheta"]
+        self.tank.hp = action["tankProps"]["hp"]
+        if action["type"] == "kill":
+            self.active = False
+
+    def sendUpdates(self):
+        self.game_pipe.send({
+            "tankProps": {
+                "xPosition": self.tank.xPosition,
+                "yPosition": self.tank.yPosition,
+                "turretTheta": self.tank.turretTheta,
+                "chassisTheta": self.tank.chassisTheta,
+                "hp": self.tank.hp
+            }
+        })
+
+    def moveDown(self):
+        self.player_pipe.send({
+            "type": "moveDown",
+            "args": 5
+        })
+        updates = self.player_pipe.recv()
+        self.updateSelf(updates)
+
+    def updateSelf(self, updates):
+        self.tank.xPosition = updates["xPosition"]
+        self.tank.yPosition = updates["yPosition"]
+        self.tank.chassisTheta = updates["chassisTheta"]
+        self.tank.turretTheta = updates["turretTheta"]
+        self.tank.hp = updates["hp"]
