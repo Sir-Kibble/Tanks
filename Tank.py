@@ -8,17 +8,15 @@ class Tank():
 
     def __init__(
         self,
-        startX,
-        startY,
-        chassisTheta,
-        turretTheta,
         pipe
     ):
         #super(Tank, self).__init__()
-        self.xPosition = startX
-        self.yPosition = startY
-        self.chassisTheta = chassisTheta
-        self.turretTheta = turretTheta
+        self.xPosition = 0
+        self.yPosition = 0
+        self.chassisTheta = 0
+        self.turretTheta = 0
+        self.cannonIsLoaded = True
+        self.reloadTime = 2
         self.sprites = pygame.sprite.OrderedUpdates()
         self.chassis = TankChassis()
         self.turret = TankTurret()
@@ -30,6 +28,18 @@ class Tank():
             "moveDown": self.move_down()
         }
 
+    def set_state(
+        self,
+        startX,
+        startY,
+        chassisTheta,
+        turretTheta
+    ):
+        self.startX = startX
+        self.startY = startY
+        self.chassisTheta = chassisTheta
+        self.turretTheta = turretTheta
+
     def run(self):
         while True:
             print "receiving"
@@ -37,12 +47,18 @@ class Tank():
             #self.actions[action["type"]](action["args"])
             if action["type"] == "moveDown":
                 self.move_down()
+            elif action["type"] == "moveLeft":
+                self.move_left()
+            elif action["type"] == "moveRight":
+                self.move_right()
+            elif action["type"] == "rotateChassis":
+                self.rotateChassis(action["args"])
             updateObject = {
                 "xPosition": self.xPosition,
                 "yPosition": self.yPosition,
                 "chassisTheta": self.chassisTheta,
                 "turretTheta": self.turretTheta,
-                "hp": self.hp
+                "hp": self.hp,
             }
             self.pipe.send(updateObject)
 
@@ -67,6 +83,9 @@ class Tank():
     def move_down(self):
         self.yPosition += 5
         self.update_position()
+
+    def rotateChassis(self, angle):
+        self.chassisTheta = abs(angle % 360)
 
     def render(self, surface):
         self.update_position()

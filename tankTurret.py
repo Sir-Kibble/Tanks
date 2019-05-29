@@ -12,4 +12,5 @@ class TankTurret(pygame.sprite.Sprite):
             "turret.png"
             ).convert_alpha()
 
+        self.originalImage = self.image
         self.rect = self.image.get_rect()

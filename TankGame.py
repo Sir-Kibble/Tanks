@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import pygame
 import time
+import Tank
 from multiprocessing import Process, Pipe
 
 
@@ -32,6 +33,7 @@ class TankGame:
     def run(self):
         # start players
         for x in range(0, len(self.players)):
+            self.players[x]["player"].activate()
             self.players[x]["player"].start()
             Process(target=self.players[x]["player"].tank.run).start()
 
@@ -60,19 +62,20 @@ class TankGame:
                 self.players[x]["player"].tank.chassisTheta = updates["tankProps"]["chassisTheta"]
                 self.players[x]["player"].tank.turretTheta = updates["tankProps"]["turretTheta"]
                 self.players[x]["player"].tank.hp = updates["tankProps"]["hp"]
+                self.players[x]["player"].tank.chassis.image = rotateImage(self.players[x]["player"].tank.chassis.originalImage, self.players[x]["player"].tank.chassisTheta)
 
             self.enforce_rules()
             print "draw_updates"
             self.draw_updates()
             pygame.event.pump()
             self.clock.tick(10)
-            time.sleep(.5)
+            time.sleep(.05)
         pygame.quit()
         return 1
 
     def draw_updates(self):
         for x in range(0, len(self.players)):
-            print "drawing ", self.players[x]["player"].name, " at y: ", self.players[x]["player"].tank.yPosition
+            print "drawing ", self.players[x]["player"].name, " at y: ", self.players[x]["player"].tank.yPosition, " x: ", self.players[x]["player"].tank.xPosition
             self.players[x]["player"].tank.render(self.screen)
 
     def enforce_rules(self):
@@ -82,9 +85,18 @@ class TankGame:
             self.players[x]["player"].tank.yPosition
             if self.players[x]["player"].tank.xPosition < 0:
                 self.players[x]["player"].tank.xPosition = 0
-            if self.players[x]["player"].tank.xPosition > self.size[0]:
-                self.players[x]["player"].tank.xPosition = self.size[0]
+            if self.players[x]["player"].tank.xPosition > self.size[0]-40:
+                self.players[x]["player"].tank.xPosition = self.size[0]-40
             if self.players[x]["player"].tank.yPosition < 0:
                 self.players[x]["player"].tank.yPosition = 0
-            if self.players[x]["player"].tank.yPosition > self.size[1]-80:
-                self.players[x]["player"].tank.yPosition = self.size[1]-80
+            if self.players[x]["player"].tank.yPosition > self.size[1]-40:
+                self.players[x]["player"].tank.yPosition = self.size[1]-40
+
+
+def rotateImage(image, angle):
+    """rotate an image while keeping its center and size"""
+
+    loc = image.get_rect().center
+    rot_sprite = pygame.transform.rotate(image, angle)
+    rot_sprite.get_rect().center = loc
+    return rot_sprite

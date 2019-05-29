@@ -10,6 +10,7 @@ class TankChassis(pygame.sprite.Sprite):
         self.image = pygame.image.load(
             "/mnt/mole/Projects/Programs/python3/chassis.png",
             "chassis.png"
-            ).convert()
+            ).convert_alpha()
 
+        self.originalImage = self.image
         self.rect = self.image.get_rect()
