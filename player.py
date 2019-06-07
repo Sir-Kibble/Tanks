@@ -102,14 +102,38 @@ class Player(Process):
         self.__sendUpdates()
 
     def rotateChassis(self, degrees):
-        self.__getGameUpdates()
-        self.player_pipe.send({
-            "type": "rotateChassis",
-            "args": degrees
-        })
-        updates = self.player_pipe.recv()
-        self.updateSelf(updates)
-        self.__sendUpdates()
+        degreesTemp = abs(degrees)
+        direction = (abs(degrees) / degrees)
+        theta = 10 * direction
+        while(degreesTemp > 10):
+            if(degreesTemp < 10):
+                theta = degreesTemp * direction
+            self.__getGameUpdates()
+            self.player_pipe.send({
+                "type": "rotateChassis",
+                "args": theta
+            })
+            updates = self.player_pipe.recv()
+            self.updateSelf(updates)
+            self.__sendUpdates()
+            degreesTemp -= 10
+
+    def rotateTurret(self, degrees):
+        degreesTemp = abs(degrees)
+        direction = (abs(degrees) / degrees)
+        theta = 10 * direction
+        while(degreesTemp > 10):
+            if(degreesTemp < 10):
+                theta = degreesTemp * direction
+            self.__getGameUpdates()
+            self.player_pipe.send({
+                "type": "rotateTurret",
+                "args": theta
+            })
+            updates = self.player_pipe.recv()
+            self.updateSelf(updates)
+            self.__sendUpdates()
+            degreesTemp -= 10
 
     def rotateRight(self, degrees):
         exit

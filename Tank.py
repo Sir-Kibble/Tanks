@@ -53,6 +53,8 @@ class Tank():
                 self.move_right()
             elif action["type"] == "rotateChassis":
                 self.rotateChassis(action["args"])
+            elif action["type"] == "rotateTurret":
+                self.rotateTurret(action["args"])
             updateObject = {
                 "xPosition": self.xPosition,
                 "yPosition": self.yPosition,
@@ -85,12 +87,27 @@ class Tank():
         self.update_position()
 
     def rotateChassis(self, angle):
-        self.chassisTheta = abs(angle % 360)
+        self.chassisTheta += angle % 360
 
-    def render(self, surface):
+    def rotateTurret(self, angle):
+        self.turretTheta += angle % 360
+
+    def readySprites(self, screen, pos):
         self.update_position()
         self.sprites.empty()
+        self.chassis.image = rot_center(self.chassis.originalImage, self.chassisTheta)
+        self.turret.image = rot_center(self.turret.originalImage, self.turretTheta)
         self.sprites.add(self.chassis)
         self.sprites.add(self.turret)
-        self.sprites.draw(surface)
+        self.sprites.draw(screen)
         pygame.display.update()
+
+
+def rot_center(image, angle):
+    """rotate an image while keeping its center and size"""
+    orig_rect = image.get_rect()
+    rot_image = pygame.transform.rotate(image, angle)
+    rot_rect = orig_rect.copy()
+    rot_rect.center = rot_image.get_rect().center
+    rot_image = rot_image.subsurface(rot_rect).copy()
+    return rot_image
