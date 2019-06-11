@@ -8,13 +8,17 @@ class Tank():
 
     def __init__(
         self,
-        pipe
+        pipe,
+        xPosition,
+        yPosition,
+        chassisTheta,
+        turretTheta
     ):
         #super(Tank, self).__init__()
-        self.xPosition = 0
-        self.yPosition = 0
-        self.chassisTheta = 0
-        self.turretTheta = 0
+        self.xPosition = xPosition
+        self.yPosition = yPosition
+        self.chassisTheta = chassisTheta
+        self.turretTheta = turretTheta
         self.cannonIsLoaded = True
         self.reloadTime = 2
         self.sprites = pygame.sprite.OrderedUpdates()
@@ -23,10 +27,6 @@ class Tank():
         self.update_position()
         self.hp = 100
         self.pipe = pipe
-
-        self.actions = {
-            "moveDown": self.move_down()
-        }
 
     def set_state(
         self,
@@ -44,13 +44,16 @@ class Tank():
         while True:
             print "receiving"
             action = self.pipe.recv()
+            print "action received"
             #self.actions[action["type"]](action["args"])
             if action["type"] == "moveDown":
-                self.move_down()
+                self.move_down(action["args"])
+            elif action["type"] == "moveUp":
+                self.move_up(action["args"])
             elif action["type"] == "moveLeft":
-                self.move_left()
+                self.move_left(action["args"])
             elif action["type"] == "moveRight":
-                self.move_right()
+                self.move_right(action["args"])
             elif action["type"] == "rotateChassis":
                 self.rotateChassis(action["args"])
             elif action["type"] == "rotateTurret":
@@ -70,20 +73,20 @@ class Tank():
         self.turret.rect.x = self.xPosition
         self.turret.rect.y = self.yPosition
 
-    def move_left(self):
-        self.xPosition -= 5
+    def move_left(self, distance):
+        self.xPosition -= distance
         self.update_position()
 
-    def move_right(self):
-        self.xPosition += 5
+    def move_right(self, distance):
+        self.xPosition += distance
         self.update_position()
 
-    def move_up(self):
-        self.yPosition -= 5
+    def move_up(self, distance):
+        self.yPosition -= distance
         self.update_position()
 
-    def move_down(self):
-        self.yPosition += 5
+    def move_down(self, distance):
+        self.yPosition += distance
         self.update_position()
 
     def rotateChassis(self, angle):

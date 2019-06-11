@@ -48,13 +48,14 @@ class TankGame:
             for x in range(0, len(self.players)):
                 self.players[x]["pipe"].send({
                         "type": "play",
-                        "tankProps": {
-                            "xPosition": self.players[x]["player"].tank.xPosition,
-                            "yPosition": self.players[x]["player"].tank.yPosition,
-                            "turretTheta": self.players[x]["player"].tank.turretTheta,
-                            "chassisTheta": self.players[x]["player"].tank.chassisTheta,
-                            "hp": self.players[x]["player"].tank.hp
-                        }
+                        # "tankProps": {
+                        #     "xPosition": self.players[x]["player"].tank.xPosition,
+                        #     "yPosition": self.players[x]["player"].tank.yPosition,
+                        #     "turretTheta": self.players[x]["player"].tank.turretTheta,
+                        #     "chassisTheta": self.players[x]["player"].tank.chassisTheta,
+                        #     "hp": self.players[x]["player"].tank.hp
+                        # },
+                        "gameState": self.__getGameState()
                 })
                 updates = self.players[x]["pipe"].recv()
                 self.players[x]["player"].tank.xPosition = updates["tankProps"]["xPosition"]
@@ -68,7 +69,7 @@ class TankGame:
             self.draw_updates()
             pygame.event.pump()
             self.clock.tick(10)
-            time.sleep(.05)
+            time.sleep(.5)
         pygame.quit()
         return 1
 
@@ -83,7 +84,30 @@ class TankGame:
             #     self.players[x]["player"].tank.chassisTheta
             # )
 
+    # currently only handles single tank per player, but want to expand
+    def __getGameState(self):
+        state = {
+            "players": [],
+            # "allies": [],
+            # "enemies": [],
+            # "objects": [],
+            # "shells": [],
+        }
+        for x in range(0, len(self.players)):
+            state["players"].append({
+                "name": self.players[x]["player"].name,
+                "xPosition": self.players[x]["player"].tank.xPosition,
+                "yPosition": self.players[x]["player"].tank.yPosition,
+                "turretTheta": self.players[x]["player"].tank.turretTheta,
+                "chassisTheta": self.players[x]["player"].tank.chassisTheta,
+                "hp": self.players[x]["player"].tank.hp
+            })
+            return state
+
     def enforce_rules(self):
+        self.enforce_boundaries()
+
+    def enforce_boundaries(self):
         for x in range(0, len(self.players)):
             print "enforcing ", self.players[x]["player"].tank.yPosition,
             ", ",
@@ -96,7 +120,6 @@ class TankGame:
                 self.players[x]["player"].tank.yPosition = -9
             if self.players[x]["player"].tank.yPosition > self.size[1]-49:
                 self.players[x]["player"].tank.yPosition = self.size[1]-49
-
 
 # def rotateImage(screen, pos, image, angle):
 #     """rotate an image while keeping its center and size"""
