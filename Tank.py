@@ -42,10 +42,8 @@ class Tank():
 
     def run(self):
         while True:
-            print "receiving"
             action = self.pipe.recv()
-            print "action received"
-            #self.actions[action["type"]](action["args"])
+            # self.actions[action["type"]](action["args"])
             if action["type"] == "moveDown":
                 self.move_down(action["args"])
             elif action["type"] == "moveUp":

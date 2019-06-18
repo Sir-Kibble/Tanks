@@ -74,21 +74,34 @@ class Player(Process):
         if direction == "left":
             # look through all players and see if
             # the have an x value within current player move distance
+            # remmeber that the sprites are padded for rotation
+            # 58x58 with 9px padding on each side
+            # print self.gameState["gameState"]["players"]
             for key in self.gameState["gameState"]["players"]:
-                if key["name"] != self.name:
-                    if key["xPosition"]+49 - self.tank.xPosition < 5 and key["xPosition"]+49 - self.tank.xPosition >= 0:
-                        print "hit x!!!!!"
-                        if key["yPosition"] - self.tank.yPosition < 49 and key["yPosition"]+49 - self.tank.yPosition >= 0:
-                            print "hit y!!!!!!1111"
-                            print key["xPosition"]+49 - self.tank.xPosition
-                            return key["xPosition"]+49 - self.tank.xPosition
-        return 5
+                if key["name"] == self.name:
+                    keyCollisionRect = key["collisionRect"]
+                    keyImageRect = key["chassisImage"].rect
+                    for checkKey in self.gsameState["gameState"]["players"]:
+                        checkKeyCollisionRect = checkKey["collisionRect"]
+                        checkKeyImageRect = checkKey["chassisImage"].rect
+                        if checkKey["name"] == self.name:
+                            continue
+                        if keyCollisionRect.colliderect(checkKeyCollisionRect):
+                            print "collission!"
+                            return 0
+                    # if key["xPosition"]+49 - self.tank.xPosition < 5 and key["xPosition"]+49 - self.tank.xPosition >= 0:
+                    #     print "hit x!!!!!"
+                    #     if key["yPosition"] - self.tank.yPosition < 49 and key["yPosition"]+49 - self.tank.yPosition >= 0:
+                    #         print "hit y!!!!!!1111"
+                    #         print key["xPosition"]+49 - self.tank.xPosition
+                    #         return key["xPosition"]+49 - self.tank.xPosition
+        return 1
 
     def moveDown(self):
         self.__getGameUpdates()
         self.player_pipe.send({
             "type": "moveDown",
-            "args": 5
+            "args": 1
         })
         updates = self.player_pipe.recv()
         self.updateSelf(updates)
@@ -108,7 +121,7 @@ class Player(Process):
         self.__getGameUpdates()
         self.player_pipe.send({
             "type": "moveRight",
-            "args": 5
+            "args": 1
         })
         updates = self.player_pipe.recv()
         self.updateSelf(updates)

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import pygame
 import time
-import Tank
 from multiprocessing import Process, Pipe
 
 
@@ -21,6 +20,7 @@ class TankGame:
 
     def set_players(self, players):
         x = 0
+        print players
         for player in players:
             game_pipe, player_pipe = Pipe()
             player.set_pipe(player_pipe)
@@ -102,7 +102,7 @@ class TankGame:
                 "chassisTheta": self.players[x]["player"].tank.chassisTheta,
                 "hp": self.players[x]["player"].tank.hp
             })
-            return state
+        return state
 
     def enforce_rules(self):
         self.enforce_boundaries()
