@@ -24,9 +24,10 @@ class Tank():
         self.sprites = pygame.sprite.OrderedUpdates()
         self.chassis = TankChassis()
         self.turret = TankTurret()
-        self.update_position()
         self.hp = 100
         self.pipe = pipe
+        self.collisionRect = pygame.Rect(xPosition, yPosition, 40, 40)
+        self.update_position()
 
     def set_state(
         self,
@@ -70,6 +71,7 @@ class Tank():
         self.chassis.rect.y = self.yPosition
         self.turret.rect.x = self.xPosition
         self.turret.rect.y = self.yPosition
+        self.collisionRect.move(self.xPosition, self.yPosition)
 
     def move_left(self, distance):
         self.xPosition -= distance

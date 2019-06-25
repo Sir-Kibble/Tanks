@@ -87,14 +87,14 @@ class TankGame:
     # currently only handles single tank per player, but want to expand
     def __getGameState(self):
         state = {
-            "players": [],
+            "tanks": [],
             # "allies": [],
             # "enemies": [],
             # "objects": [],
             # "shells": [],
         }
         for x in range(0, len(self.players)):
-            state["players"].append({
+            state["tanks"].append({
                 "name": self.players[x]["player"].name,
                 "xPosition": self.players[x]["player"].tank.xPosition,
                 "yPosition": self.players[x]["player"].tank.yPosition,

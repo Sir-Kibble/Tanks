@@ -1,5 +1,6 @@
 from Tank import Tank
 import time
+import pygame
 from multiprocessing import Process, Pipe
 
 
@@ -46,7 +47,7 @@ class Player(Process):
 
     def __getGameUpdates(self):
         self.gameState = self.game_pipe.recv()
-        for key in self.gameState["gameState"]["players"]:
+        for key in self.gameState["gameState"]["tanks"]:
             if key["name"] == self.name:
                 self.tank.xPosition = key["xPosition"]
                 self.tank.yPosition = key["yPosition"]
@@ -77,13 +78,11 @@ class Player(Process):
             # remmeber that the sprites are padded for rotation
             # 58x58 with 9px padding on each side
             # print self.gameState["gameState"]["players"]
-            for key in self.gameState["gameState"]["players"]:
+            for key in self.gameState["gameState"]["tanks"]:
                 if key["name"] == self.name:
-                    keyCollisionRect = key["collisionRect"]
-                    keyImageRect = key["chassisImage"].rect
-                    for checkKey in self.gsameState["gameState"]["players"]:
-                        checkKeyCollisionRect = checkKey["collisionRect"]
-                        checkKeyImageRect = checkKey["chassisImage"].rect
+                    keyCollisionRect = pygame.Rect(key["xPosition"]+9, key["yPosition"]+9, 40, 40)
+                    for checkKey in self.gameState["gameState"]["tanks"]:
+                        checkKeyCollisionRect = pygame.Rect(checkKey["xPosition"]+9, checkKey["yPosition"]+9, 40, 40)
                         if checkKey["name"] == self.name:
                             continue
                         if keyCollisionRect.colliderect(checkKeyCollisionRect):
