@@ -71,13 +71,11 @@ class Player(Process):
     # invoked before all move actions to handle collisions gracefully
     # returns how far tank can be moved
     def check_move_legality(self, direction):
-        print direction
         if direction == "left":
             # look through all players and see if
             # the have an x value within current player move distance
             # remmeber that the sprites are padded for rotation
             # 58x58 with 9px padding on each side
-            # print self.gameState["gameState"]["players"]
             for key in self.gameState["gameState"]["tanks"]:
                 if key["name"] == self.name:
                     keyCollisionRect = pygame.Rect(key["xPosition"]+9, key["yPosition"]+9, 40, 40)
@@ -121,6 +119,26 @@ class Player(Process):
         self.player_pipe.send({
             "type": "moveRight",
             "args": 1
+        })
+        updates = self.player_pipe.recv()
+        self.updateSelf(updates)
+        self.__sendUpdates()
+
+    def moveForwards(self):
+        self.__getGameUpdates()
+        self.player_pipe.send({
+            "type": "moveForwards",
+            "args": 5
+        })
+        updates = self.player_pipe.recv()
+        self.updateSelf(updates)
+        self.__sendUpdates()
+
+    def moveBackwards(self):
+        self.__getGameUpdates()
+        self.player_pipe.send({
+            "type": "moveBackwards",
+            "args": 5
         })
         updates = self.player_pipe.recv()
         self.updateSelf(updates)

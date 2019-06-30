@@ -20,4 +20,5 @@ class MoveLeft(Player):
         )
 
     def play(self):
-        self.moveLeft()
+        self.moveForwards()
+        self.rotateChassis(5)

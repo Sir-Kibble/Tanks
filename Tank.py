@@ -1,6 +1,7 @@
 import pygame
 from tankChassis import TankChassis
 from tankTurret import TankTurret
+import math
 #from multiprocessing import Process
 
 
@@ -53,6 +54,10 @@ class Tank():
                 self.move_left(action["args"])
             elif action["type"] == "moveRight":
                 self.move_right(action["args"])
+            elif action["type"] == "moveForwards":
+                self.move_forwards(action["args"])
+            elif action["type"] == "moveBackwards":
+                self.move_backwards(action["args"])
             elif action["type"] == "rotateChassis":
                 self.rotateChassis(action["args"])
             elif action["type"] == "rotateTurret":
@@ -87,6 +92,17 @@ class Tank():
 
     def move_down(self, distance):
         self.yPosition += distance
+        self.update_position()
+
+    def move_forwards(self, distance):
+        print math.sin(self.chassisTheta)
+        self.yPosition += math.sin((self.chassisTheta * math.pi) / 180) * distance
+        self.xPosition += math.cos((self.chassisTheta * math.pi) / 180) * distance
+        self.update_position()
+
+    def move_backwards(self, distance):
+        self.yPosition -= math.sin((self.chassisTheta * math.pi) / 180) * distance
+        self.xPosition -= math.cos((self.chassisTheta * math.pi) / 180) * distance
         self.update_position()
 
     def rotateChassis(self, angle):
