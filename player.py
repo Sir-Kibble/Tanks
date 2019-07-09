@@ -1,6 +1,7 @@
 from Tank import Tank
 import time
 import pygame
+import math
 from multiprocessing import Process, Pipe
 
 
@@ -54,6 +55,7 @@ class Player(Process):
                 self.tank.chassisTheta = key["chassisTheta"]
                 self.tank.turretTheta = key["turretTheta"]
                 self.tank.hp = key["hp"]
+                self.tank.cannonIsLoaded = key["cannonIsLoaded"]
         # if gameState["type"] == "kill":
         #     self.active = False
 
@@ -65,86 +67,64 @@ class Player(Process):
                 "turretTheta": self.tank.turretTheta,
                 "chassisTheta": self.tank.chassisTheta,
                 "hp": self.tank.hp,
+                "cannonIsLoaded": self.tank.cannonIsLoaded
             }
         })
 
-    # invoked before all move actions to handle collisions gracefully
-    # returns how far tank can be moved
-    def check_move_legality(self, direction):
-        if direction == "left":
-            # look through all players and see if
-            # the have an x value within current player move distance
-            # remmeber that the sprites are padded for rotation
-            # 58x58 with 9px padding on each side
-            for key in self.gameState["gameState"]["tanks"]:
-                if key["name"] == self.name:
-                    keyCollisionRect = pygame.Rect(key["xPosition"]+9, key["yPosition"]+9, 40, 40)
-                    for checkKey in self.gameState["gameState"]["tanks"]:
-                        checkKeyCollisionRect = pygame.Rect(checkKey["xPosition"]+9, checkKey["yPosition"]+9, 40, 40)
-                        if checkKey["name"] == self.name:
-                            continue
-                        if keyCollisionRect.colliderect(checkKeyCollisionRect):
-                            print "collission!"
-                            return 0
-                    # if key["xPosition"]+49 - self.tank.xPosition < 5 and key["xPosition"]+49 - self.tank.xPosition >= 0:
-                    #     print "hit x!!!!!"
-                    #     if key["yPosition"] - self.tank.yPosition < 49 and key["yPosition"]+49 - self.tank.yPosition >= 0:
-                    #         print "hit y!!!!!!1111"
-                    #         print key["xPosition"]+49 - self.tank.xPosition
-                    #         return key["xPosition"]+49 - self.tank.xPosition
-        return 1
-
-    def moveDown(self):
-        self.__getGameUpdates()
-        self.player_pipe.send({
-            "type": "moveDown",
-            "args": 1
-        })
-        updates = self.player_pipe.recv()
-        self.updateSelf(updates)
-        self.__sendUpdates()
-
-    def moveLeft(self):
-        self.__getGameUpdates()
-        self.player_pipe.send({
-            "type": "moveLeft",
-            "args": self.check_move_legality("left")
-        })
-        updates = self.player_pipe.recv()
-        self.updateSelf(updates)
-        self.__sendUpdates()
-
-    def moveRight(self):
-        self.__getGameUpdates()
-        self.player_pipe.send({
-            "type": "moveRight",
-            "args": 1
-        })
-        updates = self.player_pipe.recv()
-        self.updateSelf(updates)
-        self.__sendUpdates()
-
+    # size is hardcoded in get_legal_distance, 600x400
     def moveForwards(self):
         self.__getGameUpdates()
+        distance = get_legal_distance(
+            self.name,
+            self.gameState["gameState"],
+            5,
+            600,
+            400
+        )
         self.player_pipe.send({
             "type": "moveForwards",
-            "args": 5
+            "args": distance
         })
         updates = self.player_pipe.recv()
         self.updateSelf(updates)
         self.__sendUpdates()
+        if (distance == 0):
+            return False
+        return True
 
     def moveBackwards(self):
         self.__getGameUpdates()
-        self.player_pipe.send({
-            "type": "moveBackwards",
-            "args": 5
-        })
+        distance = get_legal_distance(
+            self.name,
+            self.gameState["gameState"],
+            5,
+            600,
+            400
+        )
+        updates = self.player_pipe.recv()
+        self.updateSelf(updates)
+        self.__sendUpdates()
+        if (distance == 0):
+            return False
+        return True
+
+    def fireCannon(self):
+        self.__getGameUpdates()
+        if self.tank.cannonIsLoaded:
+            self.player_pipe.send({
+                "type": "fireCannon",
+            })
+        else:
+            self.player_pipe.send({
+                "type": "pass",
+            })
         updates = self.player_pipe.recv()
         self.updateSelf(updates)
         self.__sendUpdates()
 
     def rotateChassis(self, degrees):
+        if(degrees == 0):
+            return
         degreesTemp = abs(degrees)
         direction = (abs(degrees) / degrees)
         theta = 10 * direction
@@ -190,3 +170,35 @@ class Player(Process):
         self.tank.chassisTheta = updates["chassisTheta"]
         self.tank.turretTheta = updates["turretTheta"]
         self.tank.hp = updates["hp"]
+        self.tank.cannonIsLoaded = updates["cannonIsLoaded"]
+
+
+def get_legal_distance(playerName, gameState, distance, xMax, yMax):
+    for key in gameState["tanks"]:
+        if key["name"] == playerName:
+            keyCollisionRect = pygame.Rect(
+                key["xPosition"]+9+math.cos((key["chassisTheta"] * math.pi) / 180) * distance,
+                key["yPosition"]+9+math.sin((key["chassisTheta"] * math.pi) / 180) * distance,
+                40,
+                40
+            )
+            for checkKey in gameState["tanks"]:
+                checkKeyCollisionRect = pygame.Rect(
+                    checkKey["xPosition"]+9,
+                    checkKey["yPosition"]+9,
+                    40,
+                    40
+                )
+                if checkKey["name"] == playerName:
+                    continue
+                # check bounds
+                if (
+                    keyCollisionRect.x < 0
+                    or keyCollisionRect.x > xMax
+                    or keyCollisionRect.y < 0
+                    or keyCollisionRect.y > yMax
+                ):
+                    return 0
+                if keyCollisionRect.colliderect(checkKeyCollisionRect):
+                    return 0
+    return distance

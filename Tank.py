@@ -21,7 +21,7 @@ class Tank():
         self.chassisTheta = chassisTheta
         self.turretTheta = turretTheta
         self.cannonIsLoaded = True
-        self.reloadTime = 2
+        self.reloadTime = 100
         self.sprites = pygame.sprite.OrderedUpdates()
         self.chassis = TankChassis()
         self.turret = TankTurret()
@@ -45,8 +45,18 @@ class Tank():
     def run(self):
         while True:
             action = self.pipe.recv()
+            # reload cannon if needed
+            if not self.cannonIsLoaded:
+                self.reloadTime -= 1
+
+            if self.reloadTime < 1:
+                self.cannonIsLoaded = True
+                self.reloadTime = 100
+
             # self.actions[action["type"]](action["args"])
-            if action["type"] == "moveDown":
+            if action["type"] == "fireCannon":
+                self.fire_cannon()
+            elif action["type"] == "moveDown":
                 self.move_down(action["args"])
             elif action["type"] == "moveUp":
                 self.move_up(action["args"])
@@ -68,6 +78,7 @@ class Tank():
                 "chassisTheta": self.chassisTheta,
                 "turretTheta": self.turretTheta,
                 "hp": self.hp,
+                "cannonIsLoaded": self.cannonIsLoaded
             }
             self.pipe.send(updateObject)
 
@@ -78,24 +89,13 @@ class Tank():
         self.turret.rect.y = self.yPosition
         self.collisionRect.move(self.xPosition, self.yPosition)
 
-    def move_left(self, distance):
-        self.xPosition -= distance
-        self.update_position()
+    def fire_cannon(self):
+        if self.cannonIsLoaded:
+            print "\n\nFIRE!!!!!!!!!!!\n\n"
+            self.cannonIsLoaded = False
 
-    def move_right(self, distance):
-        self.xPosition += distance
-        self.update_position()
-
-    def move_up(self, distance):
-        self.yPosition -= distance
-        self.update_position()
-
-    def move_down(self, distance):
-        self.yPosition += distance
-        self.update_position()
 
     def move_forwards(self, distance):
-        print math.sin(self.chassisTheta)
         self.yPosition += math.sin((self.chassisTheta * math.pi) / 180) * distance
         self.xPosition += math.cos((self.chassisTheta * math.pi) / 180) * distance
         self.update_position()
@@ -114,7 +114,8 @@ class Tank():
     def readySprites(self, screen, pos):
         self.update_position()
         self.sprites.empty()
-        self.chassis.image = rot_center(self.chassis.originalImage, self.chassisTheta)
+        # doing negative rotations as it seems to work properlys
+        self.chassis.image = rot_center(self.chassis.originalImage, -1 * self.chassisTheta)
         self.turret.image = rot_center(self.turret.originalImage, self.turretTheta)
         self.sprites.add(self.chassis)
         self.sprites.add(self.turret)

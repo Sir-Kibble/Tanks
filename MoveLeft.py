@@ -1,4 +1,5 @@
 from player import Player
+import random
 
 
 class MoveLeft(Player):
@@ -21,4 +22,5 @@ class MoveLeft(Player):
 
     def play(self):
         self.moveForwards()
-        self.rotateChassis(5)
+        self.fireCannon()
+        self.rotateChassis(random.randint(-5, 3))

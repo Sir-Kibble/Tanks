@@ -48,13 +48,6 @@ class TankGame:
             for x in range(0, len(self.players)):
                 self.players[x]["pipe"].send({
                         "type": "play",
-                        # "tankProps": {
-                        #     "xPosition": self.players[x]["player"].tank.xPosition,
-                        #     "yPosition": self.players[x]["player"].tank.yPosition,
-                        #     "turretTheta": self.players[x]["player"].tank.turretTheta,
-                        #     "chassisTheta": self.players[x]["player"].tank.chassisTheta,
-                        #     "hp": self.players[x]["player"].tank.hp
-                        # },
                         "gameState": self.__getGameState()
                 })
                 updates = self.players[x]["pipe"].recv()
@@ -63,13 +56,14 @@ class TankGame:
                 self.players[x]["player"].tank.chassisTheta = updates["tankProps"]["chassisTheta"]
                 self.players[x]["player"].tank.turretTheta = updates["tankProps"]["turretTheta"]
                 self.players[x]["player"].tank.hp = updates["tankProps"]["hp"]
+                self.players[x]["player"].tank.cannonIsLoaded = updates["tankProps"]["cannonIsLoaded"]
 
-            self.enforce_rules()
+            # self.enforce_rules() players are now responsible for this
             print "draw_updates"
             self.draw_updates()
             pygame.event.pump()
-            self.clock.tick(10)
-            time.sleep(.5)
+            self.clock.tick(30)
+            #time.sleep(.5)
         pygame.quit()
         return 1
 
@@ -77,12 +71,6 @@ class TankGame:
         for x in range(0, len(self.players)):
             print "drawing ", self.players[x]["player"].name, " at y: ", self.players[x]["player"].tank.yPosition, " x: ", self.players[x]["player"].tank.xPosition
             self.players[x]["player"].tank.readySprites(self.screen, self.size)
-            # rotateImage(
-            #     self.screen,
-            #     self.size,
-            #     self.players[x]["player"].tank.chassis.originalImage,
-            #     self.players[x]["player"].tank.chassisTheta
-            # )
 
     # currently only handles single tank per player, but want to expand
     def __getGameState(self):
@@ -100,7 +88,8 @@ class TankGame:
                 "yPosition": self.players[x]["player"].tank.yPosition,
                 "turretTheta": self.players[x]["player"].tank.turretTheta,
                 "chassisTheta": self.players[x]["player"].tank.chassisTheta,
-                "hp": self.players[x]["player"].tank.hp
+                "hp": self.players[x]["player"].tank.hp,
+                "cannonIsLoaded": self.players[x]["player"].tank.cannonIsLoaded
             })
         return state
 
@@ -120,32 +109,3 @@ class TankGame:
                 self.players[x]["player"].tank.yPosition = -9
             if self.players[x]["player"].tank.yPosition > self.size[1]-49:
                 self.players[x]["player"].tank.yPosition = self.size[1]-49
-
-# def rotateImage(screen, pos, image, angle):
-#     """rotate an image while keeping its center and size"""
-#     w, h = image.get_size()
-#     box = [pygame.math.Vector2(p) for p in [(0, 0), (w, 0), (w, -h), (0, -h)]]
-#     box_rotate = [p.rotate(angle) for p in box]
-#     min_box = (
-#         min(box_rotate, key=lambda p: p[0])[0],
-#         min(box_rotate, key=lambda p: p[1])[1]
-#     )
-#     max_box = (
-#         max(box_rotate, key=lambda p: p[0])[0],
-#         max(box_rotate, key=lambda p: p[1])[1]
-#     )
-#     pivot = pygame.math.Vector2(w/2, -h/2)
-#     pivot_rotate = pivot.rotate(angle)
-#     pivot_move = pivot_rotate - pivot
-#     origin = (
-#         pos[0] + min_box[0] - pivot_move[0],
-#         pos[1] - max_box[1] + pivot_move[1]
-#     )
-#
-#     rotated_image = pygame.transform.rotate(image, angle)
-#     screen.blit(rotated_image, origin)
-
-    # loc = (image.get_rect().x + image.get_rect().center[0],
-    #        image.get_rect().y+ image.get_rect().center[1])
-    # rot_sprite = pygame.transform.rotate(image, angle)
-    # newLoc = rot_sprite.get_rect().center
